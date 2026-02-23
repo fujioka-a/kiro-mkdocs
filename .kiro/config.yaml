@@ -1,0 +1,5 @@
+hooks:
+  pre_write:
+    - .kiro/hooks/validate_docs.py
+  pre_commit:
+    - .kiro/hooks/validate_docs.py

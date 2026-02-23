@@ -1,0 +1,18 @@
+site_name: API Server Spec (PoC)
+site_url: http://localhost:8000/
+theme:
+  name: mkdocs
+
+nav:
+  - Home: index.md
+  - Overview:
+      - API Boundary: 00_overview/api-boundary.md
+      - Auth: 00_overview/auth.md
+  - API:
+      - Endpoints: 10_api/endpoints.md
+      - Errors: 10_api/errors.md
+  - ADR:
+      - ADR-0001 Error Format: 30_adr/adr-0001-error-format.md
+
+plugins:
+  - search
