@@ -17,10 +17,10 @@
 
 | レイヤ | 役割 |
 |------|------|
-Kiro | 真実の生成主体 |
-MkDocs | 表示 |
-Validator | 品質保証 |
-CI | 最終防衛線 |
+| Kiro | 真実の生成主体 |
+| MkDocs | 表示 |
+| Validator | 品質保証 |
+| CI | 最終防衛線 |
 
 ---
 
@@ -80,11 +80,13 @@ Kiro が検証
 
 ## 🏗 システム構成
 
+### ローカル開発フロー（個別品質保証）
+
 docs編集
 ↓
 Kiro hooks
 ↓
-validate_docs.py（唯一の真実）
+validate_docs.py（個別ドキュメント検証）
 ↓
 OK → 保存
 NG → 拒否
@@ -97,9 +99,14 @@ watcher
 ↓
 validate_docs.py
 
-＋
+### CI統合フロー（全体整合性保証）
 
-CI → validate_docs.py
+PR/Push
+↓
+CI実行
+├─ validate_docs.py（個別品質）
+├─ validate_integration.py（統合品質）
+└─ mkdocs build --strict（ビルド検証）
 
 ---
 
@@ -108,7 +115,8 @@ CI → validate_docs.py
 .
 ├── docs/
 ├── tools/
-│   ├── validate_docs.py
+│   ├── validate_docs.py          # 個別ドキュメント品質検証
+│   ├── validate_integration.py   # 統合品質検証（CI専用）
 │   └── watch_docs.py
 ├── .kiro/
 │   ├── config.yaml
@@ -121,17 +129,36 @@ CI → validate_docs.py
 
 ## 🔍 validate_docs.py の役割
 
-唯一の品質判定ロジックです。
+個別ドキュメントの品質判定を担当します。
 
-全検証入口はこのスクリプトを呼びます。
+検証内容：
+- 必須メタデータ（title, owner, status, last_reviewed）
+- owner妥当性（placeholder禁止）
+- last_reviewed期限（90日以内）
 
 呼び出し元：
 - Kiro hooks
 - watcher
 - CI
 
+---
+
+## 🔗 validate_integration.py の役割
+
+リポジトリ全体の整合性を検証します（CI専用）。
+
+検証内容：
+- ドキュメント間リンク切れ
+- owner一覧の妥当性
+- 重複title検出
+- 統計レポート（承認率、期限切れ数）
+
+呼び出し元：
+- CI のみ
+
 理由：
-ロジック分散は必ず破綻するため。
+統合チェックはリポジトリ全体を対象とするため、
+ローカル編集時には不要。mainブランチ統合時のみ実行。
 
 ---
 
@@ -178,8 +205,8 @@ CI → validate_docs.py
 
 | 項目 | 更新主体 |
 |------|------|
-last_modified | 自動 |
-last_reviewed | 人間レビュー |
+| last_modified | 自動 |
+| last_reviewed | 人間レビュー |
 
 理由：
 

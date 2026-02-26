@@ -6,11 +6,15 @@ on:
     paths:
       - "docs/**"
       - "tools/validate_docs.py"
+      - "tools/validate_integration.py"
+      - "mkdocs.yml"
   pull_request:
     branches: ["main", "master"]
     paths:
       - "docs/**"
       - "tools/validate_docs.py"
+      - "tools/validate_integration.py"
+      - "mkdocs.yml"
 
 jobs:
   validate:
@@ -26,8 +30,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pyyaml
+          pip install pyyaml mkdocs mkdocs-material
 
-      - name: Validate documentation
+      - name: 個別ドキュメント品質チェック
         run: |
           python tools/validate_docs.py
+
+      - name: 統合品質チェック
+        run: |
+          python tools/validate_integration.py
+
+      - name: MkDocsビルド検証
+        run: |
+          mkdocs build --strict

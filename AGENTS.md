@@ -21,13 +21,15 @@ If any instruction elsewhere conflicts with this file, this file wins.
 
 ## 1. Core Principle (Non‑Negotiable)
 
-The validation system is the single source of truth.
+The validation system has two layers with distinct responsibilities:
 
-Agent MUST treat:
-
+Individual document quality:
     tools/validate_docs.py
 
-as the only location where validation logic may exist.
+Integration quality:
+    tools/validate_integration.py
+
+Agent MUST treat these as the only locations where validation logic may exist.
 
 Agent MUST NOT duplicate validation logic anywhere else.
 
@@ -62,7 +64,7 @@ Agent MAY:
 - Add new Markdown docs
 - Edit docs content
 - Improve wording
-- Add new validation rules inside validate_docs.py
+- Add new validation rules inside validate_docs.py or validate_integration.py
 - Add tests
 - Refactor code WITHOUT changing behavior
 - Improve performance
@@ -73,7 +75,7 @@ Agent MAY:
 
 Agent MUST NOT:
 
-- Move validation logic outside validate_docs.py
+- Move validation logic outside validate_docs.py or validate_integration.py
 - Add validation inside hooks
 - Add validation inside MkDocs config
 - Auto-update last_reviewed
@@ -229,6 +231,11 @@ Bad:
 
 Good:
     extend validate_docs.py
+
+Exception:
+    validate_integration.py is allowed because it serves
+    a distinct responsibility (integration quality vs.
+    individual document quality).
 
 ---
 
