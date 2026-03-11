@@ -9,7 +9,7 @@ import yaml
 DOCS_ROOT = pathlib.Path(__file__).resolve().parents[1] / "docs"
 APPROVED_MAX_AGE_DAYS = 180
 REQUIRED = ("title", "owner", "status", "last_reviewed")
-
+ALLOWED_OWNERS = {"platform-team", "dev-team", "security-team"}
 
 def validate_file(path: pathlib.Path, today: datetime.date) -> List[str]:
     """単一ファイルの検証エラーメッセージ一覧をリターン"""
@@ -25,16 +25,16 @@ def validate_file(path: pathlib.Path, today: datetime.date) -> List[str]:
 
     errs: List[str] = []
 
-    status = str(meta.get("status", "")).strip().lower()
-    if status != "approved":
-        errs.append(f"{rel}: status は 'approved' である必要があります（現在: '{status or 'blank'}'）。")
-
     for k in REQUIRED:
         if meta.get(k) is None or str(meta.get(k)).strip() == "":
             errs.append(f"{rel}: 承認済みドキュメントに必須キー '{k}' がありません。")
 
+    status = str(meta.get("status", "")).strip().lower()
+    if status != "approved":
+        errs.append(f"{rel}: status は 'approved' である必要があります（現在: '{status or 'blank'}'）。")
+
     owner = str(meta.get("owner", "")).strip().lower()
-    if owner in {"", "unknown", "tbd"}:
+    if owner not in ALLOWED_OWNERS: 
         errs.append(f"{rel}: owner は実在の人物またはチームである必要があります（現在: '{owner or 'blank'}'）。")
 
     lr = meta.get("last_reviewed")
