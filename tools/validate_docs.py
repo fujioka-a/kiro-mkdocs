@@ -7,7 +7,7 @@ import yaml
 
 
 DOCS_ROOT = pathlib.Path(__file__).resolve().parents[1] / "docs"
-APPROVED_MAX_AGE_DAYS = 180
+APPROVED_MAX_AGE_DAYS = 90
 REQUIRED = ("title", "owner", "status", "last_reviewed")
 ALLOWED_OWNERS = {"platform-team", "dev-team", "security-team"}
 
@@ -61,9 +61,11 @@ def main() -> int:
         print("ドキュメント検証に失敗しました:")
         for e in errors:
             print(f"- {e}")
+        return 1
     else:
         print("OK: ドキュメント検証に合格しました。")
+        return 0
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())
