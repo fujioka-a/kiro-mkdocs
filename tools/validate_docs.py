@@ -15,24 +15,20 @@ def validate_file(path: pathlib.Path, today: datetime.date) -> List[str]:
     """単一ファイルの検証エラーメッセージ一覧をリターン"""
 
     rel = str(path.relative_to(DOCS_ROOT)) if DOCS_ROOT in path.parents else path.name
+    print(f"Validating {rel}...")
     txt = path.read_text(encoding="utf-8")
 
     # YAML フロントマターのインライン解析（以前は _parse_frontmatter）
     m = re.match(r"^---\s*\n(.*?)\n---\s*\n", txt, re.DOTALL)
-    if not m:
-        meta = {}
-    else:
-        try:
-            data = yaml.safe_load(m.group(1)) or {}
-            meta = {str(k): v for k, v in data.items()} if isinstance(data, dict) else {}
-        except Exception as exc:
-            return [f"{rel}: YAML フロントマターの解析に失敗しました: {exc}"]
+    data = yaml.safe_load(m.group(1)) or {}
+    meta = {str(k): v for k, v in data.items()} if isinstance(data, dict) else {}
+
+    errs: List[str] = []
 
     status = str(meta.get("status", "")).strip().lower()
     if status != "approved":
-        return []
+        errs.append(f"{rel}: status は 'approved' である必要があります（現在: '{status or 'blank'}'）。")
 
-    errs: List[str] = []
     for k in REQUIRED:
         if meta.get(k) is None or str(meta.get(k)).strip() == "":
             errs.append(f"{rel}: 承認済みドキュメントに必須キー '{k}' がありません。")
@@ -47,9 +43,9 @@ def validate_file(path: pathlib.Path, today: datetime.date) -> List[str]:
             d = datetime.date.fromisoformat(str(lr))
         except Exception:
             errs.append(f"{rel}: last_reviewed の日付形式が無効です: '{lr}'。YYYY-MM-DD を使用してください。")
-    else:
-        if (today - d).days > APPROVED_MAX_AGE_DAYS:
-            errs.append(f"{rel}: ドキュメントが古くなっています（last_reviewed {(today-d).days}日前 > {APPROVED_MAX_AGE_DAYS}日）。")
+        else:
+            if (today - d).days > APPROVED_MAX_AGE_DAYS:
+                errs.append(f"{rel}: ドキュメントが古くなっています（last_reviewed {(today-d).days}日前 > {APPROVED_MAX_AGE_DAYS}日）。")
 
     return errs
 
