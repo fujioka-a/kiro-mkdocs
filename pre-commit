@@ -1,0 +1,25 @@
+#!/bin/bash
+# Git pre-commit hook for documentation validation
+
+# ステージされた Markdown ファイルを取得
+STAGED_MD_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.md$')
+
+if [ -z "$STAGED_MD_FILES" ]; then
+  exit 0
+fi
+
+echo "🔍 Validating documentation metadata..."
+source .venv/bin/activate
+
+# 各ファイルを検証
+for file in $STAGED_MD_FILES; do
+  python3 tools/validate_docs.py "$file"
+  if [ $? -ne 0 ]; then
+    echo "❌ Validation failed for: $file"
+    echo "Please fix the issues before committing."
+    exit 1
+  fi
+done
+
+echo "✅ All documents validated successfully"
+exit 0
