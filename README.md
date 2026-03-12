@@ -80,24 +80,42 @@ Kiro が検証
 
 ## 🏗 システム構成
 
-### ローカル開発フロー（個別品質保証）
+### ローカル開発フロー
 
+#### 1. Git Hooks（メタデータ検証）
+
+```
 docs編集
 ↓
-Kiro hooks
+git add
 ↓
-validate_docs.py（個別ドキュメント検証）
+.git/hooks/pre-commit
 ↓
-OK → 保存
-NG → 拒否
+validate_docs.py（メタデータ検証）
+↓
+OK → コミット成功
+NG → コミット失敗
+```
 
-＋
+#### 2. Kiro Agent Hooks（AI検証）
 
-docs変更
+IDE で手動編集時：
+
+```
+ドキュメント編集
 ↓
-watcher
+.kiro/hooks/*.kiro.hook（IDE フック）
 ↓
-validate_docs.py
+Kiro AI が自動検証
+├─ 意味的整合性
+├─ 参照整合性
+├─ コンテキスト依存
+├─ 完全性
+└─ 文体一貫性
+↓
+問題あり → 修正案を提示
+問題なし → 保存
+```
 
 ### CI統合フロー（全体整合性保証）
 
@@ -118,10 +136,20 @@ CI実行
 │   ├── validate_docs.py          # 個別ドキュメント品質検証
 │   ├── validate_integration.py   # 統合品質検証（CI専用）
 │   └── watch_docs.py
+├── .git/hooks/
+│   └── pre-commit                # Git hooks（メタデータ検証）
 ├── .kiro/
-│   ├── config.yaml
-│   └── hooks/
-│       └── validate_docs.py
+│   ├── hooks/
+│   │   ├── validate-semantic-consistency.kiro.hook
+│   │   ├── validate-tone-consistency.kiro.hook
+│   │   ├── validate-reference-integrity.kiro.hook
+│   │   ├── validate-context-awareness.kiro.hook
+│   │   └── validate-completeness.kiro.hook
+│   └── rules/
+│       ├── ai-validation-rules.md
+│       ├── validation-policy.md
+│       ├── metadata-rules.md
+│       └── document-lifecycle.md
 └── mkdocs.yml
 ```
 
@@ -175,18 +203,26 @@ CI実行
 
 ---
 
-## 🤖 Kiro Hooks の役割
+## 🤖 Kiro Agent Hooks の役割
 
-検証タイミング：
+**検証タイミング:**
+- IDE でドキュメント編集時（fileEdited トリガー）
 
-- pre_write
-- pre_commit
+**検証観点:**
+- 意味的整合性（タイトルと本文の一致、内部矛盾）
+- 参照整合性（リンク切れ、deprecated参照）
+- コンテキスト依存（重複タイトル、ドキュメント間矛盾）
+- 完全性（API仕様の必須セクション）
+- 文体一貫性（敬体・常体の混在）
 
-防止できる問題：
+**防止できる問題:**
+- 意味的矛盾
+- リンク切れ
+- 不完全な仕様
+- 文体の不統一
 
-- stale仕様
-- owner未設定
-- approved条件違反
+**詳細ルール:**
+- `.kiro/rules/ai-validation-rules.md` を参照
 
 ---
 
@@ -224,7 +260,7 @@ source .venv/bin/activate
 pytest tests/test_validate_docs.py -v
 
 # 検証実行
-python tools/validate_docs.py
+python3 tools/validate_docs.py
 
 # MkDocs起動
 mkdocs serve
@@ -260,7 +296,7 @@ mkdocs serve
 必須：
 
 - 検証ロジックは validate_docs.py のみ変更可
-- hooksにはロジックを書かない
+- Agent Hooks には AI 判定ルールのみ記載
 - MkDocs側に検証を入れない
 
 禁止：
