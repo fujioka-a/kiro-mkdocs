@@ -1,8 +1,8 @@
 ---
 title: Auth
 owner: platform-team
-status: 
-last_reviewed: 2026-02-23
+status: approved
+last_reviewed: 2026-03-12
 ---
 
 # Auth

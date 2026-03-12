@@ -1,5 +1,8 @@
 ---
-status: draft
+title: API Boundary
+owner: platform-team
+status: approved
+last_reviewed: 2026-03-12
 ---
 
 # API Boundary
